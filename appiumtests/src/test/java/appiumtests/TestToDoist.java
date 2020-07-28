@@ -8,19 +8,19 @@ import org.openqa.selenium.remote.DesiredCapabilities;
 import io.appium.java_client.AppiumDriver;
 import io.appium.java_client.MobileElement;
 
-public class CalculatorTest {
+public class TestToDoist {
 	
 	static AppiumDriver<MobileElement> driver;
 	
 	public static void main(String[] args) {
 		try {
-			openCalculator();
+			testLaunchToDoist();
 		} catch (Exception e) {
 			System.out.println(e);
 		}
 	}
 
-	public static void openCalculator() throws MalformedURLException {
+	public static void testLaunchToDoist() throws MalformedURLException {
 		DesiredCapabilities cp = new DesiredCapabilities();
 		
 		cp.setCapability("deviceName", "sdk_gphone_x86");
