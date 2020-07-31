@@ -6,7 +6,10 @@
 	<artifactId>appiumtests</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<description>appium test project</description>
-
+	<properties>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<maven.compiler.source>1.8</maven.compiler.source>
+	</properties>
 	<!-- How To update pom.xml dependencies -->
 	<!--1. https://mvnrepository.com -->
 	<!--2. Find or search your Artifacts ex. gson - then click search -->
@@ -51,7 +54,9 @@
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.13</version>
+			<scope>test</scope>
 		</dependency>
+
 	</dependencies>
 </project>
 
