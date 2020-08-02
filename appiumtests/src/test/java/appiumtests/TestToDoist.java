@@ -16,6 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -23,6 +24,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -37,6 +39,7 @@ import io.appium.java_client.MobileElement;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestToDoist {
 
+	private String projectId = "0";
 	private String myNewProjectName = "My New Test Project";
 	private static AppiumDriver<MobileElement> driver;
 	private static DesiredCapabilities cap;
@@ -56,7 +59,7 @@ public class TestToDoist {
 
 		URL url = new URL("http://localhost:9090/wd/hub");
 		driver = new AppiumDriver<MobileElement>(url, cap);
-		wait = new WebDriverWait(driver, 15);
+		wait = new WebDriverWait(driver, 10);
 
 		System.out.println("Application started..");
 	}
@@ -167,7 +170,6 @@ public class TestToDoist {
 		public void setCommentCount(String commentCount) {
 			this.commentCount = commentCount;
 		}
-
 	}
 
 	public static String toString(InputStream inputStream) throws IOException {
@@ -211,12 +213,6 @@ public class TestToDoist {
 		return postData.toString().getBytes("UTF-8");
 	}
 
-	public class BaseClass {
-
-	}
-
-	public int projectId = 0;
-
 	public static String getBaseUrl() {
 		return "https://api.todoist.com/rest/v1/projects";
 	}
@@ -252,11 +248,11 @@ public class TestToDoist {
 	}
 
 	@Test
-	public void test2ShouldReturnTrueIfProjectIsCreated() {
+	public void test2ShouldReturnTrueIfProjectIsCreated() throws InterruptedException {
 		System.out.println("Clicking \"Continue with Google\"..");
 
 		// Clicking google for login
-		wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("com.todoist:id/btn_google"))).click();
+		wait.until(ExpectedConditions.presenceOfElementLocated(By.id("com.todoist:id/btn_google"))).click();
 
 		System.out.println("selecting \"todoisttest2020@gmail.com\" account..");
 
@@ -264,98 +260,80 @@ public class TestToDoist {
 		wait.until(ExpectedConditions.presenceOfElementLocated(
 				By.xpath("//android.widget.TextView[contains(@text, 'todoisttest2020@gmail.com')]"))).click();
 
-		System.out.println("selecting \"No\" for timezone..");
-
-		// Click No for Timezone
-		wait.until(
-				ExpectedConditions.presenceOfElementLocated(By.xpath("//android.widget.Button[contains(@text, 'NO')]")))
-				.click();
-
-		System.out.println("clicking menu button..");
+		System.out.println("Clicking main menu..");
 
 		// Clicking toolbar
 		wait.until(ExpectedConditions.presenceOfElementLocated(
 				By.xpath("//android.widget.ImageButton[contains(@content-desc, 'Change the current view')]"))).click();
 
-		wait.until(ExpectedConditions.presenceOfElementLocated(
-				By.xpath("//android.widget.ImageView[contains(@content-desc, 'Expand/collapse')]"))).click();
+		boolean isNotClickable = true;
+		WebElement projExpandCollapseElementBtn = null;
 
-		System.out.println("Waiting 10seconds..");
+		while (isNotClickable) {
+			try {
+				projExpandCollapseElementBtn = wait.until(ExpectedConditions.presenceOfElementLocated(
+						By.xpath("//android.widget.ImageView[contains(@content-desc, 'Expand/collapse')]")));
 
-		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-
-		System.out.println("Finding List Elements");
-
-		List<MobileElement> menuList = driver.findElements(By.className("android.widget.RelativeLayout"));
-
-		System.out.println("menuList length : " + menuList.size());
-
-		boolean isFound = false;
-
-		try {
-			// Iterate menu
-			for (MobileElement element : menuList) {
-				MobileElement textElement = element.findElementByClassName("android.widget.TextView");
-
-				if (textElement == null) {
-					continue;
-				}
-
-				String textValue = textElement.getAttribute("text");
-
-				System.out.println("  text  : " + textValue);
-
-				if (textValue == null) { // just in if null
-					textValue = "";
-				}
-
-				System.out.println("Searching for Projects Menu..");
-				
-				if (textValue.equals("Projects")) {
-					System.out.println("Projects Menu Found..");
+				System.out.println("Is expand/collapse button visible? "+ projExpandCollapseElementBtn.isDisplayed());
+			
+				if (projExpandCollapseElementBtn.isDisplayed()) {
+					System.out.println("Click Project's mmenu expand/collapse element button..");
 					
-					List<MobileElement> subMenuList = driver.findElements(By.className("android.widget.TextView"));
-
-					for (MobileElement subElement : subMenuList) {
-						System.out.println("      sub-class: " + subElement.getAttribute("class"));
-
-						String subTextValue = subElement.getAttribute("text");
-
-						System.out.println("      sub-text  : " + subTextValue);
-
-						if (subTextValue == null) { // just in if null
-							subTextValue = "";
-						}
-
-						System.out.println("Searching for " + myNewProjectName);
-						
-						if (subTextValue.equals(myNewProjectName)) {
-							System.out.println(myNewProjectName + " Found!");
-							
-							isFound = true;
-							break;
-						}
-					}
+					projExpandCollapseElementBtn.click();
+					
+					isNotClickable = false;
 				}
-
-				if (isFound) {
-					System.out.println("Stopping Search because " + myNewProjectName + " Is already found");
-					break;
-				}
+				
+			} catch (Exception e) {
+				System.out.println("Was not able to locate expand/collapse button.");
+				
+				System.out.println("Re-clicking main menu..");
+				
+				wait.until(ExpectedConditions.presenceOfElementLocated(
+					By.xpath("//android.widget.ImageButton[contains(@content-desc, 'Change the current view')]"))).click();
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
 		
-		if (!isFound) {
-			System.out.println(myNewProjectName + " NOT found");
+		// Search for myNewProjectName if exists in my Todoist
+		boolean isExists = isMyProjectExistsInTodoistUI(myNewProjectName);
 
-		}
-		
-		assertTrue(isFound);
+		System.out.println("isExists: " + isExists);
+
+		assertTrue("\"" + myNewProjectName + "\" does not exists or created.", isExists);
 	}
 
+	public boolean isMyProjectExistsInTodoistUI(String myProjectNameToSearch) throws InterruptedException {
+
+		// Let's wait for 10 seconds allowing the emulator to finish loading the UI
+		Thread.sleep(3000);
+
+		List<MobileElement> textViewElements = driver.findElements(By.className("android.widget.TextView"));
+
+		// Search for my projects under main menu Projects
+		for (MobileElement elements : textViewElements) {
+
+			// Retrieve text value property
+			String textValue = elements.getAttribute("text");
+
+			// If null, skip and proceed to the next TextView
+			if (textValue == null) {
+				continue;
+			}
+
+			System.out.println("Project item name: " + textValue);
 		
+			// Is the text value is equals to the myProjectNameToSearch value?
+			if (textValue.equals(myProjectNameToSearch)) {
+				System.out.println("\"" + myProjectNameToSearch + "\" found!");
+				
+				// project item found!
+				return true;
+			}
+		}
+		
+		return false;
+	}
+
 	/// 2. Test “Reopen Task”
 	// Login into mobile application and Verify on mobile that project is created
 	// Login Via Token Authorization
