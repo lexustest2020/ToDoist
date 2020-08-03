@@ -21,6 +21,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -33,6 +34,7 @@ import com.google.gson.reflect.TypeToken;
 import appiumtests.ToDoistTest2.Project;
 import io.appium.java_client.AppiumDriver;
 import io.appium.java_client.MobileElement;
+import io.appium.java_client.android.AndroidKeyCode;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ToDoistTest2 {
@@ -315,16 +317,130 @@ public class ToDoistTest2 {
 
 	@Test
 	public void test3CreateTestTask() {
+
 		MobileElement createTaskBtn = driver.findElementById("com.todoist:id/fab");
 		createTaskBtn.click();
 
 		MobileElement taskNameFld = driver.findElementById("android:id/message");
-		 taskNameFld.setValue(myProjectTaskName);
-		
-		 MobileElement addTaskBtn = driver.findElementById("android:id/button1");
-			addTaskBtn.click();	
-		 
-		//To Do: To store Task ID to Private Variable to use API later.
+		taskNameFld.setValue(myProjectTaskName);
+
+		MobileElement addTaskBtn = driver.findElementById("android:id/button1");
+		addTaskBtn.click();
+
+		driver.navigate().back();
+
+	}
+
+	@Test
+	public void test4TestTaskAppeared() throws InterruptedException {
+		System.out.println("Complete Test Task");
+
+		// Opening project in Todoist UI
+		MobileElement element = searchElementInTodoistUI(myProjectTaskName);
+
+		System.out.println("TaskName isExist: " + (element != null));
+
+		assertTrue("\"" + myProjectTaskName + "\" Not Opened Successfully.", (element != null));
+	}
+
+	public MobileElement searchElementInTodoistUI(String myProjectNameToSearch) throws InterruptedException {
+		MobileElement returnElement = null;
+
+		// Let's wait for 10 seconds allowing the emulator to finish loading the UI
+		Thread.sleep(3000);
+
+		List<MobileElement> textViewElements = driver.findElements(By.className("android.widget.TextView"));
+
+		// Search for my projects under main menu Projects
+		for (MobileElement element : textViewElements) {
+
+			// Retrieve text value property
+			String textValue = element.getAttribute("text");
+
+			// If null, skip and proceed to the next TextView
+			if (textValue == null) {
+				continue;
+			}
+
+			System.out.println("Project item name: " + textValue);
+
+			// Is the text value is equals to the myProjectNameToSearch value?
+			if (textValue.equals(myProjectNameToSearch)) {
+				System.out.println("\"" + myProjectNameToSearch + "\" found!");
+
+				// element.click();
+				returnElement = element;
+
+			}
+		}
+
+		return returnElement;
+
+	}
+
+	@Test
+	public void test5CompleteTask() throws InterruptedException {
+		System.out.println("Complete Test Task");
+
+		// Opening project in Todoist UI
+		MobileElement checkMarkElement = searchTaskCheckMarkInTodoistUI(myProjectTaskName);
+
+		boolean status = checkMarkElement != null;
+
+		System.out.println("Is Task check mark found: " + status);
+
+		if (status) {
+			checkMarkElement.click();
+		}
+
+		assertTrue("\"" + myProjectTaskName + "\" Not Exist.", status);
+	}
+
+	public MobileElement searchTaskCheckMarkInTodoistUI(String taskName) throws InterruptedException {
+		MobileElement returnElement = null;
+
+		// Let's wait for 10 seconds allowing the emulator to finish loading the UI
+		Thread.sleep(3000);
+
+		List<MobileElement> itemElements = driver.findElements(By.id("com.todoist:id/item"));
+
+		// Search for my projects under main menu Projects
+		for (MobileElement element : itemElements) {
+
+			MobileElement taskNameElement = element.findElement(By.id("com.todoist:id/text"));
+
+			// If null, skip and proceed to the next TextView
+			if (taskNameElement == null) {
+				continue;
+			}
+			// Retrieve text value property
+			String textValue = taskNameElement.getAttribute("text");
+
+			// If null, skip and proceed to the next TextView
+			if (textValue == null) {
+				continue;
+			}
+
+			System.out.println("Task name: " + textValue);
+
+			// Is the text value is equals to the myProjectNameToSearch value?
+			if (textValue.equals(taskName)) {
+				System.out.println("\"" + taskName + "\" found!");
+
+				MobileElement checkMarkElement = element.findElement(By.id("com.todoist:id/checkmark"));
+
+				// If null, skip and proceed to the next TextView
+				if (checkMarkElement == null) {
+					continue;
+				}
+
+				returnElement = checkMarkElement;
+
+				break;
+			}
+		}
+
+		return returnElement;
 	}
 
 }
