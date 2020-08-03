@@ -37,7 +37,7 @@ import io.appium.java_client.AppiumDriver;
 import io.appium.java_client.MobileElement;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestToDoist {
+public class ToDoistTest1 {
 
 	private String projectId = "0";
 	private String myNewProjectName = "My New Test Project";
@@ -66,8 +66,8 @@ public class TestToDoist {
 
 	@AfterClass
 	public static void tearDown() throws Exception {
-		// driver.quit();
-		// System.out.println("Application exited.");
+		 driver.quit();
+		 System.out.println("Application exited.");
 	}
 
 	public class Project {
