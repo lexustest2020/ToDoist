@@ -1,19 +1,14 @@
 package appiumtests;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.List;
 
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
-import appiumtests.model.Task;
+import appiumtests.util.Api;
+import appiumtests.util.MobileApp;
 import appiumtests.util.TestUtils;
 import io.appium.java_client.MobileElement;
 
@@ -23,309 +18,168 @@ public class ToDoistTest2 extends TestBaseClass {
 	@Test
 	public void test1OpenMobileApplication() {
 
-		System.out.println("Clicking \"Continue with Google\" button..");
-		// Clicking Continue with Google for login
-		wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("com.todoist:id/btn_google"))).click();
+		TestUtils.printTestTitle("Open mobile application");
 
-		System.out.println("Selecting \"todoisttest2020@gmail.com\" account..");
-		// Select ToDoist account
-		wait.until(ExpectedConditions.presenceOfElementLocated(
-				By.xpath("//android.widget.TextView[contains(@text, 'todoisttest2020@gmail.com')]"))).click();
+		try {
+			// When
+			MobileApp.loginUsingGoogleAccount();
+			
+			// Then
+			assertTrue("Successfully login to mobile application.", true);
+			
+		} catch (Exception e) {
+			
+			// If error detected, then failed to login in the mobile application
+			assertTrue("Unable to login to mobile application due to error", false);
+			
+			// For debugging and to know what the error is about, uncomment below
+			// e.printStackTrace();
+		}
+		
+		TestUtils.printEnd();
 	}
 
 	@Test
 	public void test2OpenTestProject() throws InterruptedException {
+		
+		TestUtils.printTestTitle("Open test project");
 
-		System.out.println("Clicking side button Main menu..");
-		// Clicking Toolbar
-		wait.until(ExpectedConditions.presenceOfElementLocated(
-				By.xpath("//android.widget.ImageButton[contains(@content-desc, 'Change the current view')]"))).click();
+		// Given
+		assertNotNull("Project name should not be null", TestBaseClass.myProjectName);
 
-		boolean isNotClickable = true;
-		WebElement projExpandCollapseElementBtn = null;
+		// When
+		MobileApp.clickMainMenuThenClickProjectsExpandCollapseButton();
 
-		while (isNotClickable) {
-			try {
-				projExpandCollapseElementBtn = wait.until(ExpectedConditions.presenceOfElementLocated(
-						By.xpath("//android.widget.ImageView[contains(@content-desc, 'Expand/collapse')]")));
+		// Then
+		boolean isProjectOpen = MobileApp.searchForMyProjectThenClickToOpenTheProject();
 
-				System.out.println("At Sub-Menu Project's, is expand/collapse button visible? "
-						+ projExpandCollapseElementBtn.isDisplayed());
-				if (projExpandCollapseElementBtn.isDisplayed()) {
-					System.out.println("Click Project's Sub-Menu expand/collapse element button..");
-
-					projExpandCollapseElementBtn.click();
-
-					isNotClickable = false;
-				}
-
-			} catch (Exception e) {
-				System.out.println("At sub Menu Projects, was not able to locate expand/collapse button.");
-
-				System.out.println("Re-clicking side button Main menu...");
-				wait.until(ExpectedConditions.presenceOfElementLocated(
-						By.xpath("//android.widget.ImageButton[contains(@content-desc, 'Change the current view')]")))
-						.click();
-			}
-		}
-
-		// Opening project in Todoist UI
-		boolean status = openMyProjectInTodoistUI(myNewProjectName);
-
-		System.out.println("status: " + status);
-
-		assertTrue("\"" + myNewProjectName + "\" Not Opened Successfully.", status);
-	}
-
-	public boolean openMyProjectInTodoistUI(String myProjectNameToSearch) throws InterruptedException {
-
-		// Let's wait for 10 seconds allowing the emulator to finish loading the UI
-		Thread.sleep(3000);
-
-		List<MobileElement> textViewElements = driver.findElements(By.className("android.widget.TextView"));
-
-		// Search for my projects under main menu Projects
-		for (MobileElement elements : textViewElements) {
-
-			// Retrieve text value property
-			String textValue = elements.getAttribute("text");
-
-			// If null, skip and proceed to the next TextView
-			if (textValue == null) {
-				continue;
-			}
-
-			System.out.println("Project item name: " + textValue);
-
-			// Is the text value is equals to the myProjectNameToSearch value?
-			if (textValue.equals(myProjectNameToSearch)) {
-				System.out.println("\"" + myProjectNameToSearch + "\" found!");
-
-				elements.click();
-
-				return true;
-			}
-		}
-		return false;
+		assertTrue("Project \"" + TestBaseClass.myProjectName + "\" not successfully opened in mobile application", isProjectOpen);
+		
+		TestUtils.printEnd();
 	}
 
 	@Test
-	public void test3CreateTestTask() throws InterruptedException {
+	public void test3CreateTestTask() {
 
-		Thread.sleep(3000);
-
-		MobileElement createTaskBtn = driver.findElementById("com.todoist:id/fab");
-		createTaskBtn.click();
-
-		Thread.sleep(3000);
-
-		MobileElement taskNameFld = driver.findElementById("android:id/message");
-		taskNameFld.setValue(myProjectTaskName);
-
-		Thread.sleep(3000);
-
-		MobileElement addTaskBtn = driver.findElementById("android:id/button1");
-		addTaskBtn.click();
-
-		Thread.sleep(3000);
-
-		driver.navigate().back();
-
-		Thread.sleep(3000);
-
-	}
-
-	@Test
-	public void test4TestTaskAppearedviaAPI() throws InterruptedException {
-		System.out.println("\nAPI: Verify that task created correctly.");
-
+		TestUtils.printTestTitle("Create test task");
+	
+		// Given
+		assertNotNull("Task name should not be null", TestBaseClass.myTaskName);
+		
 		try {
-			URL url = new URL("https://api.todoist.com/rest/v1/tasks?token=" + getLoginToken());
-			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-			conn.setRequestMethod("GET");
-			// conn.setRequestProperty("Accept", "application/json");
-			if (conn.getResponseCode() != 200) {
-				throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
-			}
+			Thread.sleep(3000);
 
-			List<Task> taskList = TestUtils.toTaskList(conn.getInputStream());
+			// When
+			MobileElement createTaskBtn = driver.findElementById("com.todoist:id/fab");
+			createTaskBtn.click();
 
-			conn.disconnect();
+			Thread.sleep(3000);
 
-			boolean isCreated = false;
+			// And
+			MobileElement taskNameFld = driver.findElementById("android:id/message");
+			taskNameFld.setValue(myTaskName);
 
-			System.out.println("Searching \"" + TestBaseClass.myProjectTaskName + "\" with Project Id: "
-					+ TestBaseClass.myProjectId);
+			Thread.sleep(3000);
 
-			for (Task task : taskList) {
+			// And
+			MobileElement addTaskBtn = driver.findElementById("android:id/button1");
+			addTaskBtn.click();
 
-				// if either is null, then proceed with the next Task
-				if (task.getProjectId() == null || task.getContent() == null) {
-					continue;
-				}
+			Thread.sleep(3000);
 
-				System.out.println(task.getProjectId() + ", " + task.getContent());
+			// And
+			driver.navigate().back();
 
-				if (task.getProjectId().equals(TestBaseClass.myProjectId)
-						&& task.getContent().equals(TestBaseClass.myProjectTaskName)) {
-					isCreated = true;
-					TestBaseClass.myProjectTaskId = task.getId();
-					break;
-				}
-			}
+			Thread.sleep(3000);
+		
+			// Then
+			assertTrue("Successfully created new task \"" + TestBaseClass.myTaskName + " in mobile application.", true);
+			
+		} catch (Exception e) {
+			
+			// If error detected, then failed to create task in mobile application
+			assertTrue("Unable to create task in mobile application due to error", false);
+			
+			// For debugging and to know what the error is about, uncomment below
+			// e.printStackTrace();
+		}
+		
+		TestUtils.printEnd();
+	}
 
-			assertTrue("Task \"" + TestBaseClass.myProjectTaskName + "\" is not created", isCreated);
+	@Test
+	public void test4VerifyTaskViaAPI() throws InterruptedException {
+		
+		TestUtils.printTestTitle("API: Verify that task created correctly.");
+
+		// Given
+		assertNotNull("Task name should not be null", TestBaseClass.myTaskName);
+		
+		try {
+			
+			// When
+			boolean isTaskCreated = Api.createTask();
+
+			// Then
+			assertTrue("Task \"" + TestBaseClass.myTaskName + "\" is not successfully created", isTaskCreated);
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			
+			// If error detected, then failed to create task in mobile application
+			assertTrue("Unable to create task in mobile application due to error", false);
+			
+			// Uncomment below to see what is the error about
+			// e.printStackTrace();
 		}
+		
+		TestUtils.printEnd();
 	}
 
 	@Test
 	public void test5CompleteTestTask() throws InterruptedException {
-		System.out.println("Complete Test Task");
+		
+		TestUtils.printTestTitle("Complete Test Task");
 
-		// Opening project in Todoist UI
-		MobileElement checkMarkElement = searchTaskCheckMarkInTodoistUI(myProjectTaskName);
+		// Given
+		assertNotNull("Task name should not be null", TestBaseClass.myTaskName);
 
-		boolean status = checkMarkElement != null;
+		// When
+		boolean isTaskCompleted = MobileApp.searchForMyTaskThenClickCheckMarkToCompleteTheTask();
 
-		System.out.println("Is Task check mark found: " + status);
-
-		if (status) {
-			checkMarkElement.click();
-		}
-
-		assertTrue("\"" + myProjectTaskName + "\" Not Exist.", status);
-	}
-
-	public MobileElement searchTaskCheckMarkInTodoistUI(String taskName) throws InterruptedException {
-		MobileElement returnElement = null;
-
-		// Let's wait for 10 seconds allowing the emulator to finish loading the UI
-		Thread.sleep(3000);
-
-		List<MobileElement> itemElements = driver.findElements(By.id("com.todoist:id/item"));
-
-		// Search for my projects under main menu Projects
-		for (MobileElement element : itemElements) {
-
-			MobileElement taskNameElement = element.findElement(By.id("com.todoist:id/text"));
-
-			// If null, skip and proceed to the next TextView
-			if (taskNameElement == null) {
-				continue;
-			}
-			// Retrieve text value property
-			String textValue = taskNameElement.getAttribute("text");
-
-			// If null, skip and proceed to the next TextView
-			if (textValue == null) {
-				continue;
-			}
-
-			System.out.println("Task name: " + textValue);
-
-			// Is the text value is equals to the myProjectNameToSearch value?
-			if (textValue.equals(taskName)) {
-				System.out.println("\"" + taskName + "\" found!");
-
-				MobileElement checkMarkElement = element.findElement(By.id("com.todoist:id/checkmark"));
-
-				// If null, skip and proceed to the next TextView
-				if (checkMarkElement == null) {
-					continue;
-				}
-
-				returnElement = checkMarkElement;
-
-				break;
-			}
-		}
-
-		return returnElement;
+		// Then
+		assertTrue("Task \"" + TestBaseClass.myTaskName + "\" was not successfully completed.", isTaskCompleted);
+		
+		TestUtils.printEnd();
 	}
 
 	@Test
 	public void test6ReopenTaskViaAPI() throws InterruptedException {
-		System.out.println("\nRe-opening Task \"" + TestBaseClass.myProjectTaskName + "\" with taskId="
-				+ TestBaseClass.myProjectTaskId);
+		
+		TestUtils.printTestTitle("Reopen test task via API");
+		
+		// Given
+		assertNotNull("Task name should not be null", TestBaseClass.myTaskName);
 
-		Thread.sleep(5000);
+		// When
+		boolean isTaskReopened = Api.reopenTask();
 
-		boolean responseOk = false;
-		String sUrl = "https://api.todoist.com/rest/v1/tasks/" + TestBaseClass.myProjectTaskId + "/reopen?token="
-				+ getLoginToken();
-		System.out.println("Url = " + sUrl);
-		try {
-			URL url = new URL(sUrl);
-			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-			conn.setRequestMethod("POST");
-
-			if (conn.getResponseCode() != 200) {
-				throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
-			}
-
-			// In POSTMAN 204 is a correct
-			if (conn.getResponseCode() == 204) {
-				responseOk = true;
-			}
-
-			assertTrue("Task \"" + TestBaseClass.myProjectTaskName + "\" is not successfully re-opened", responseOk);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		// Then
+		assertTrue("Task \"" + TestBaseClass.myTaskName + "\" was not successfully re-opened.", isTaskReopened);
 	}
 
 	@Test
 	public void test7TestTaskAppearedViaMobile() throws InterruptedException {
+		
+		TestUtils.printTestTitle("Verify on mobile that project is created");
+		
+		// Given
+		assertNotNull("Task name should not be null", TestBaseClass.myTaskName);
+				
+		// Then
+		boolean isVisible = MobileApp.isMyTaskVisible();
 
-		System.out.println("\nVerify that test task appears in your test project.");
-
-		Thread.sleep(15000);
-
-		// Opening project in Todoist UI
-		MobileElement element = searchElementInTodoistUI(myProjectTaskName);
-
-		System.out.println("TaskName isExist: " + (element != null));
-
-		assertTrue("\"" + myProjectTaskName + "\" Not Opened Successfully.", (element != null));
+		assertTrue("Task \"" + TestBaseClass.myTaskName + "\" is not visible in mobile app", isVisible);
+		
+		TestUtils.printEnd();
 	}
-
-	public MobileElement searchElementInTodoistUI(String myProjectNameToSearch) throws InterruptedException {
-		MobileElement returnElement = null;
-
-		// Let's wait for 10 seconds allowing the emulator to finish loading the UI
-		Thread.sleep(3000);
-
-		List<MobileElement> textViewElements = driver.findElements(By.className("android.widget.TextView"));
-
-		// Search for my projects under main menu Projects
-		for (MobileElement element : textViewElements) {
-
-			// Retrieve text value property
-			String textValue = element.getAttribute("text");
-
-			// If null, skip and proceed to the next TextView
-			if (textValue == null) {
-				continue;
-			}
-
-			System.out.println("Project item name: " + textValue);
-
-			// Is the text value is equals to the myProjectNameToSearch value?
-			if (textValue.equals(myProjectNameToSearch)) {
-				System.out.println("\"" + myProjectNameToSearch + "\" found!");
-
-				// element.click();
-				returnElement = element;
-
-			}
-		}
-
-		return returnElement;
-
-	}
-
 }

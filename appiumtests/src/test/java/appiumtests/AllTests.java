@@ -1,3 +1,8 @@
+/*
+ * Before Running the Test Suite
+ */
+
+
 package appiumtests;
 
 import org.junit.runner.RunWith;

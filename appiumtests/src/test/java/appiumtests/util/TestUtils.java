@@ -18,49 +18,64 @@ import appiumtests.model.Project;
 import appiumtests.model.Task;
 
 public class TestUtils {
+	public static final String TAB = "    ";
 
-    public static String toString(InputStream inputStream) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader((inputStream)));
-        String output;
-        StringBuilder strBuilder = new StringBuilder();
-        
-        while ((output = br.readLine()) != null) {
-            strBuilder.append(output);
-        }
-        
-        return strBuilder.toString();
-    }
+	public static String toString(InputStream inputStream) throws IOException {
+		BufferedReader br = new BufferedReader(new InputStreamReader((inputStream)));
+		String output;
+		StringBuilder strBuilder = new StringBuilder();
 
-    public static Project toProject(InputStream inputStream) throws JsonSyntaxException, IOException {
-        Type type = new TypeToken<Project>() {}.getType();
-        return new Gson().fromJson(toString(inputStream), type);
-    }
+		while ((output = br.readLine()) != null) {
+			strBuilder.append(output);
+		}
 
-    public static List<Project> toProjectList(InputStream inputStream) throws JsonSyntaxException, IOException {
-        Type listType = new TypeToken<List<Project>>() {}.getType();        
-        return new Gson().fromJson(toString(inputStream), listType);
-    }
+		return strBuilder.toString();
+	}
 
-    public static List<Task> toTaskList(InputStream inputStream) throws JsonSyntaxException, IOException {
-        Type listType = new TypeToken<List<Task>>() {}.getType();        
-        return new Gson().fromJson(toString(inputStream), listType);
-    }
-   
-    public static byte[] toPostDataBytes(Map<String, Object> params)
-            throws UnsupportedEncodingException {
-        
-        StringBuilder postData = new StringBuilder();
+	public static Project toProject(InputStream inputStream) throws JsonSyntaxException, IOException {
+		Type type = new TypeToken<Project>() {
+		}.getType();
+		return new Gson().fromJson(toString(inputStream), type);
+	}
 
-        for (Map.Entry<String, Object> param : params.entrySet()) {
-            if (postData.length() != 0) {
-                postData.append('&');
-            }
+	public static List<Project> toProjectList(InputStream inputStream) throws JsonSyntaxException, IOException {
+		Type listType = new TypeToken<List<Project>>() {
+		}.getType();
+		return new Gson().fromJson(toString(inputStream), listType);
+	}
 
-            postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
-            postData.append('=');
-            postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
-        }
+	public static List<Task> toTaskList(InputStream inputStream) throws JsonSyntaxException, IOException {
+		Type listType = new TypeToken<List<Task>>() {
+		}.getType();
+		return new Gson().fromJson(toString(inputStream), listType);
+	}
 
-        return postData.toString().getBytes("UTF-8");
-    }
+	public static byte[] toPostDataBytes(Map<String, Object> params) throws UnsupportedEncodingException {
+
+		StringBuilder postData = new StringBuilder();
+
+		for (Map.Entry<String, Object> param : params.entrySet()) {
+			if (postData.length() != 0) {
+				postData.append('&');
+			}
+
+			postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
+			postData.append('=');
+			postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
+		}
+
+		return postData.toString().getBytes("UTF-8");
+	}
+
+	public static void printTestTitle(String title) {
+		System.out.println("\n" + title + "\n");
+	}
+
+	public static void printlnWithTab(String strToPrint) {
+		System.out.println(TestUtils.TAB + strToPrint);
+	}
+
+	public static void printEnd() {
+		System.out.println("\n- End -");
+	}
 }

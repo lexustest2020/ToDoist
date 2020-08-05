@@ -7,21 +7,23 @@ import org.junit.BeforeClass;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import appiumtests.model.Project;
+import appiumtests.model.Task;
 import io.appium.java_client.AppiumDriver;
 import io.appium.java_client.MobileElement;
 
 public class TestBaseClass {
+	public static final String myLoginToken = "5a9a60b3f88597a1996926de0e13a804c9d1954b";
 
-	public static String myProjectId = "0";
-	public static String myNewProjectName = "My New Test Project";
-	
-	public static String myProjectTaskId = "0";
-	public static String myProjectTaskName = "My Task Test";
+	public static String myProjectName = "My New Test Project";
+	public static String myTaskName = "My Task Test";
+
+	public static Project myProject = null;
+	public static Task myTask = null;
 
 	public static AppiumDriver<MobileElement> driver;
 	public static DesiredCapabilities cap;
 	public static WebDriverWait wait;
-	
 
 	@BeforeClass
 	public static void setUp() throws Exception {
@@ -39,21 +41,12 @@ public class TestBaseClass {
 		driver = new AppiumDriver<MobileElement>(url, cap);
 		wait = new WebDriverWait(driver, 30);
 
-		System.out.println("Application started..");
+		System.out.println("\nApplication started..\n");
 	}
 
 	@AfterClass
 	public static void tearDown() throws Exception {
 		driver.quit();
-		System.out.println("Application exited.");
-	}
-
-	public static String getBaseUrl() {
-		return "https://api.todoist.com/rest/v1/projects";
-	}
-
-	public static String getLoginToken() {
-		return "5a9a60b3f88597a1996926de0e13a804c9d1954b";
-		   
+		System.out.println("\nApplication exited.\n");
 	}
 }
